@@ -158,7 +158,7 @@ CARDS = [
      "head": "Denmark backs Arctic pact with US",
      "body": "Parliament approves the Greenland security deal 109–0."},
     {"n": 9, "tag": "ANTALYA · CLIMATE", "src": "Reuters · AFP", "art": "cop",
-     "head": "COP31 draft drops fossil fuels and $120bn aid goal",
+     "head": "COP31 draft drops fossil fuels + $120bn aid goal",
      "body": "No figure for adaptation aid; talks are due to end on Friday."},
     {"n": 10, "tag": "WORLDWIDE · GAMES", "src": "ABC", "art": "game",
      "head": "GTA VI goes on sale after 13 years",
@@ -255,9 +255,10 @@ def _flag_ru(draw, x, y, w, h):
 def art_summit(draw, box):
     x0, y0, x1, y1 = box
     draw.rectangle(box, fill=(27, 45, 84))
-    draw.text((x0 + 8, y0 + 4), "APEC 2026 · SHENZHEN", font=F(SANS_B, 11), fill=(255, 213, 90))
+    draw.rectangle([x0, y0, x1, y0 + 15], fill=GOLD)
+    draw.text((x0 + 8, y0 + 3), "APEC 2026 · SHENZHEN", font=F(SANS_B, 11), fill=(24, 32, 54))
     draw.text((x1 - 8 - tw(draw, "FIRST THREE-WAY SUMMIT", F(SANS_B, 11)),
-               y0 + 4), "FIRST THREE-WAY SUMMIT", font=F(SANS_B, 11), fill=(255, 255, 255))
+               y0 + 3), "FIRST THREE-WAY SUMMIT", font=F(SANS_B, 11), fill=(24, 32, 54))
     fw, fh = 62, 34
     _flag_us(draw, x0 + 28, y0 + 24, fw, fh)
     _flag_cn(draw, (x0 + x1) / 2 - fw / 2, y0 + 24, fw, fh)
@@ -308,7 +309,7 @@ def art_court(draw, box):
 def art_ipo(draw, box):
     x0, y0, x1, y1 = box
     draw.rectangle(box, fill=(16, 74, 52))
-    draw.text((x0 + 8, y0 + 5), "ANT", font=F(SERIF_B, 26), fill=(255, 255, 255))
+    draw.text((x0 + 8, y0 + 3), "ANT", font=F(SERIF_B, 30), fill=(255, 255, 255))
     draw.text((x0 + 8, y0 + 34), "NASDAQ", font=F(SANS_B, 10), fill=(150, 230, 180))
     draw.text((x0 + 8, y0 + 48), "FIRST DAY", font=F(SANS_B, 10), fill=(150, 230, 180))
     # grid + candles rising
@@ -528,7 +529,7 @@ def build_image():
     d.text((X1 - tw(d, right, f), 10), right, font=f, fill=INK)
     d.line([X0, 28, X1, 28], fill=INK, width=2)
     title = "Thursday 19 November 2026"
-    ts = fit_size(d, title, SERIF_B, 56, CW)
+    ts = fit_size(d, title, SERIF_B, 58, CW)
     d.text((X0 - 1, 31), title, font=F(SERIF_B, ts), fill=INK)
     stand = "Trump, Xi and Putin share one table · The World Court finds genocide in Myanmar · The biggest IPO ever starts trading"
     ss = fit_size(d, stand, SERIF_I, 15, CW, minimum=10)
@@ -543,8 +544,8 @@ def build_image():
     rx = X0
     for i, ((label, col), cnt) in enumerate(zip(REGIONS, counts)):
         seg_w = CW * cnt / total if i < len(REGIONS) - 1 else X1 - rx
-        d.rectangle([rx, ry, rx + seg_w, ry + 19], fill=col)
-        lf = F(COND_B, 11)
+        d.rectangle([rx, ry, rx + seg_w, ry + 20], fill=col)
+        lf = F(COND_B, 12)
         d.text((rx + (seg_w - tw(d, label, lf)) / 2, ry + 3), label, font=lf, fill=(255, 255, 255))
         rx += seg_w
 
@@ -556,55 +557,59 @@ def build_image():
         cx0 = X0 + i * cell
         if i > 0:
             d.line([cx0, ny + 2, cx0, ny + 36], fill=CREAM_LINE, width=1)
-        bf = F(SERIF_B, 23)
+        bf = F(SERIF_B, 25)
         d.text((cx0 + 6, ny), big, font=bf, fill=DARKRED if i in (1, 3, 5) else INK)
         cf = F(COND_R, 11)
         lines = wrap(d, cap, cf, cell - 10, 1)
         d.text((cx0 + 6, ny + 27), lines[0] if lines else cap, font=cf, fill=INK)
 
-    # lead cards
+    # lead cards: art (100 drawn + 16 black banner) over text
     ly = 190
-    lh = 206
+    lh = 218
     gap = 6
     lw = (CW - 2 * gap) / 3.0
+    banners = ["APEC 2026 · SHENZHEN", "WORLD COURT · THE HAGUE", "NASDAQ · NEW YORK"]
     for i, lead in enumerate(LEADS):
         bx = X0 + i * (lw + gap)
         d.rectangle([bx, ly, bx + lw, ly + lh], fill=PAPER, outline=INK, width=1)
-        art_box = (bx + 1, ly + 1, bx + lw - 1, ly + 103)
+        art_box = (bx + 1, ly + 1, bx + lw - 1, ly + 101)
         if lead["art"] == "summit":
             art_summit(d, art_box)
         elif lead["art"] == "court":
             art_court(d, art_box)
         else:
             art_ipo(d, art_box)
+        d.rectangle([bx + 1, ly + 101, bx + lw - 1, ly + 117], fill=(16, 16, 16))
+        ban = banners[i]
+        banf = F(SANS_B, 12)
+        d.text((bx + (lw - tw(d, ban, banf)) / 2, ly + 103), ban, font=banf, fill=(255, 255, 255))
         tx = bx + 8
-        num_badge(d, tx, ly + 108, lead["n"], RED)
-        d.text((tx + 24, ly + 109), lead["tag"] + " — " + lead["src"].upper(),
+        num_badge(d, tx, ly + 122, lead["n"], RED)
+        d.text((tx + 24, ly + 123), lead["tag"] + " — " + lead["src"].upper(),
                font=F(COND_B, 11), fill=DARKRED)
-        hf = F(SERIF_B, 19)
+        hf = F(SERIF_B, 20)
         hlines = wrap(d, lead["head"], hf, lw - 16, 2)
-        yy = draw_lines(d, tx, ly + 126, hlines, hf, INK, 21)
+        yy = draw_lines(d, tx, ly + 140, hlines, hf, INK, 21)
         bf2 = F(SANS_R, 11)
         blines = wrap(d, lead["body"], bf2, lw - 16, 3)
-        draw_lines(d, tx, yy + 1, blines, bf2, (40, 40, 40), 13)
+        draw_lines(d, tx, yy + 1, blines, bf2, (40, 40, 40), 12)
 
-    # small cards 4-13: 5 columns x 2 rows
+    # small cards 4-13: 5 columns x 2 rows, taller art, bigger headlines
     cy0 = ly + lh + 6
-    ch = 132
+    ch = 134
     cw5 = (CW - 4 * gap) / 5.0
     for idx, card in enumerate(CARDS):
         row, col = divmod(idx, 5)
         bx = X0 + col * (cw5 + gap)
         by = cy0 + row * (ch + gap)
         d.rectangle([bx, by, bx + cw5, by + ch], fill=PAPER, outline=INK, width=1)
-        art_small(d, card["art"], (bx + 1, by + 1, bx + cw5 - 1, by + 47))
+        art_small(d, card["art"], (bx + 1, by + 1, bx + cw5 - 1, by + 50))
         tx = bx + 6
-        num_badge(d, tx, by + 51, card["n"], NAVY, r=8)
-        d.text((tx + 20, by + 52), card["tag"], font=F(COND_B, 10), fill=DARKRED)
-        hf = F(SERIF_B, 13)
-        max_head = 3 if card["n"] == 9 else 2
-        hlines = wrap(d, card["head"], hf, cw5 - 12, max_head)
-        yy = draw_lines(d, tx, by + 68, hlines, hf, INK, 14)
+        num_badge(d, tx, by + 54, card["n"], NAVY, r=8)
+        d.text((tx + 20, by + 55), card["tag"], font=F(COND_B, 10), fill=DARKRED)
+        hf = F(SERIF_B, 14)
+        hlines = wrap(d, card["head"], hf, cw5 - 12, 2)
+        yy = draw_lines(d, tx, by + 71, hlines, hf, INK, 15)
         bf2 = F(COND_R, 11)
         blines = wrap(d, card["body"] + " — " + card["src"], bf2, cw5 - 12, 2)
         draw_lines(d, tx, yy, blines, bf2, (40, 40, 40), 12)
