@@ -100,6 +100,26 @@ def num_badge(draw, x, y, n, fill, r=9):
     draw.text((x + r - w / 2, y + r - 6), t, font=f, fill=(255, 255, 255))
 
 
+CHIP_COLORS = {"REPORTED": (27, 107, 53), "CLAIM": (176, 32, 40), "FORECAST": (27, 58, 120)}
+
+
+def chip_for(n):
+    # story 5 is the Saudi account of the Riyadh interceptions (one side's
+    # claim); story 6 is a cyclone still approaching the coast (a forecast)
+    if n == 5:
+        return "CLAIM"
+    if n == 6:
+        return "FORECAST"
+    return "REPORTED"
+
+
+def status_chip(draw, right_x, y, label):
+    f = F(SANS_B, 8)
+    w = tw(draw, label, f) + 10
+    draw.rectangle([right_x - w, y, right_x, y + 12], fill=CHIP_COLORS[label])
+    draw.text((right_x - w + 5, y + 2), label, font=f, fill=(255, 255, 255))
+
+
 # ---------------------------------------------------------------- data
 REGIONS = [
     ("ASIA-PACIFIC 8", (199, 91, 38)),
@@ -158,7 +178,7 @@ CARDS = [
      "head": "Denmark backs Arctic pact with US",
      "body": "Parliament approves the Greenland security deal 109–0."},
     {"n": 9, "tag": "ANTALYA · CLIMATE", "src": "Reuters · AFP", "art": "cop",
-     "head": "COP31 draft drops fossil fuels + $120bn aid goal",
+     "head": "COP31 draft drops fossil fuels and $120bn aid goal",
      "body": "No figure for adaptation aid; talks are due to end on Friday."},
     {"n": 10, "tag": "WORLDWIDE · GAMES", "src": "ABC", "art": "game",
      "head": "GTA VI goes on sale after 13 years",
@@ -206,9 +226,10 @@ BRIEFS = [
 
 DATE_CHECK = (
     "Every story on this page happened, or was first reported, on Thursday 19 November 2026. "
-    "LEFT OUT AS OTHER DAYS' NEWS — 18 Nov: EU's €45bn Ukraine loan plan · Iran fires on Kuwait "
-    "and Bahrain · Nvidia results · Jeffries named US speaker · Voyager 1 crosses one light-day. "
-    "20 Nov (not yet): COP31's scheduled close · Cyclone Akvan's landfall."
+    "LEFT OUT AS OTHER DAYS' NEWS — EU's €45bn Ukraine loan plan (18 Nov) · Iran fires on Kuwait "
+    "and Bahrain (18 Nov) · Nvidia results (18 Nov) · Jeffries named US speaker (18 Nov) · "
+    "Voyager 1 crosses one light-day (18 Nov) · COP31's scheduled close (20 Nov — not yet) · "
+    "Cyclone Akvan's landfall (20 Nov — not yet)."
 )
 
 SOURCES = (
@@ -255,10 +276,9 @@ def _flag_ru(draw, x, y, w, h):
 def art_summit(draw, box):
     x0, y0, x1, y1 = box
     draw.rectangle(box, fill=(27, 45, 84))
-    draw.rectangle([x0, y0, x1, y0 + 15], fill=GOLD)
-    draw.text((x0 + 8, y0 + 3), "APEC 2026 · SHENZHEN", font=F(SANS_B, 11), fill=(24, 32, 54))
+    draw.text((x0 + 8, y0 + 4), "APEC 2026 · SHENZHEN", font=F(SANS_B, 11), fill=(255, 213, 90))
     draw.text((x1 - 8 - tw(draw, "FIRST THREE-WAY SUMMIT", F(SANS_B, 11)),
-               y0 + 3), "FIRST THREE-WAY SUMMIT", font=F(SANS_B, 11), fill=(24, 32, 54))
+               y0 + 4), "FIRST THREE-WAY SUMMIT", font=F(SANS_B, 11), fill=(255, 255, 255))
     fw, fh = 62, 34
     _flag_us(draw, x0 + 28, y0 + 24, fw, fh)
     _flag_cn(draw, (x0 + x1) / 2 - fw / 2, y0 + 24, fw, fh)
@@ -304,12 +324,17 @@ def art_court(draw, box):
     draw.rectangle([sx - 10, sy + 14, sx + 10, sy + 19], fill=INK)
     draw.rectangle([x0 + 8, y0 + 6, x0 + 62, y0 + 30], fill=RED)
     draw.text((x0 + 14, y0 + 9), "9 – 6", font=F(SERIF_B, 17), fill=(255, 255, 255))
+    # the fifteen judges as dots in the sky, top right: 9 gold for, 6 slate against
+    for i in range(15):
+        cx = x1 - 118 + i * 7.5
+        draw.ellipse([cx, y0 + 11, cx + 6, y0 + 17],
+                     fill=(240, 180, 60) if i < 9 else (90, 100, 115), outline=INK, width=1)
 
 
 def art_ipo(draw, box):
     x0, y0, x1, y1 = box
     draw.rectangle(box, fill=(16, 74, 52))
-    draw.text((x0 + 8, y0 + 3), "ANT", font=F(SERIF_B, 30), fill=(255, 255, 255))
+    draw.text((x0 + 8, y0 + 5), "ANT", font=F(SERIF_B, 26), fill=(255, 255, 255))
     draw.text((x0 + 8, y0 + 34), "NASDAQ", font=F(SANS_B, 10), fill=(150, 230, 180))
     draw.text((x0 + 8, y0 + 48), "FIRST DAY", font=F(SANS_B, 10), fill=(150, 230, 180))
     # grid + candles rising
@@ -529,7 +554,7 @@ def build_image():
     d.text((X1 - tw(d, right, f), 10), right, font=f, fill=INK)
     d.line([X0, 28, X1, 28], fill=INK, width=2)
     title = "Thursday 19 November 2026"
-    ts = fit_size(d, title, SERIF_B, 58, CW)
+    ts = fit_size(d, title, SERIF_B, 56, CW)
     d.text((X0 - 1, 31), title, font=F(SERIF_B, ts), fill=INK)
     stand = "Trump, Xi and Putin share one table · The World Court finds genocide in Myanmar · The biggest IPO ever starts trading"
     ss = fit_size(d, stand, SERIF_I, 15, CW, minimum=10)
@@ -544,8 +569,8 @@ def build_image():
     rx = X0
     for i, ((label, col), cnt) in enumerate(zip(REGIONS, counts)):
         seg_w = CW * cnt / total if i < len(REGIONS) - 1 else X1 - rx
-        d.rectangle([rx, ry, rx + seg_w, ry + 20], fill=col)
-        lf = F(COND_B, 12)
+        d.rectangle([rx, ry, rx + seg_w, ry + 19], fill=col)
+        lf = F(COND_B, 11)
         d.text((rx + (seg_w - tw(d, label, lf)) / 2, ry + 3), label, font=lf, fill=(255, 255, 255))
         rx += seg_w
 
@@ -557,59 +582,88 @@ def build_image():
         cx0 = X0 + i * cell
         if i > 0:
             d.line([cx0, ny + 2, cx0, ny + 36], fill=CREAM_LINE, width=1)
-        bf = F(SERIF_B, 25)
+        bf = F(SERIF_B, 23)
         d.text((cx0 + 6, ny), big, font=bf, fill=DARKRED if i in (1, 3, 5) else INK)
         cf = F(COND_R, 11)
         lines = wrap(d, cap, cf, cell - 10, 1)
         d.text((cx0 + 6, ny + 27), lines[0] if lines else cap, font=cf, fill=INK)
 
-    # lead cards: art (100 drawn + 16 black banner) over text
-    ly = 190
-    lh = 218
+    # timeline strip: the day in UTC, built only from stories on this page
+    ty = 187
+    d.rectangle([X0, ty, X0 + 86, ty + 24], fill=DARKRED)
+    tlf = F(SANS_B, 9)
+    d.text((X0 + (86 - tw(d, "THE DAY", tlf)) / 2, ty + 2), "THE DAY", font=tlf, fill=(255, 255, 255))
+    d.text((X0 + (86 - tw(d, "IN UTC", tlf)) / 2, ty + 13), "IN UTC", font=tlf, fill=(255, 255, 255))
+    timeline = [
+        ("00:00", "GTA VI unlocks · Auckland"),
+        ("00:30 UTC", "Australia jobless 4.9%"),
+        ("DAWN", "Riyadh missiles downed"),
+        ("MORNING", "Shenzhen: 3 leaders meet"),
+        ("MORNING", "The Hague: 9–6 ruling"),
+        ("AFTERNOON", "Antalya: COP31 draft out"),
+        ("NEW YORK", "ANT starts trading"),
+    ]
+    ev_x = X0 + 86
+    ev_w = (X1 - ev_x) / 7.0
+    d.line([ev_x, ty, X1, ty], fill=INK, width=1)
+    d.line([ev_x, ty + 24, X1, ty + 24], fill=INK, width=1)
+    for i, (when, what) in enumerate(timeline):
+        ex = ev_x + i * ev_w
+        if i > 0:
+            d.line([ex, ty + 2, ex, ty + 22], fill=CREAM_LINE, width=1)
+        d.text((ex + 5, ty + 2), when, font=F(SANS_B, 10), fill=DARKRED)
+        wf = F(COND_R, 10)
+        size = 10
+        while tw(d, what, F(COND_R, size)) > ev_w - 8 and size > 8:
+            size -= 1
+            wf = F(COND_R, size)
+        d.text((ex + 5, ty + 13), what, font=wf, fill=INK)
+
+    # lead cards
+    ly = 218
+    lh = 206
     gap = 6
     lw = (CW - 2 * gap) / 3.0
-    banners = ["APEC 2026 · SHENZHEN", "WORLD COURT · THE HAGUE", "NASDAQ · NEW YORK"]
     for i, lead in enumerate(LEADS):
         bx = X0 + i * (lw + gap)
         d.rectangle([bx, ly, bx + lw, ly + lh], fill=PAPER, outline=INK, width=1)
-        art_box = (bx + 1, ly + 1, bx + lw - 1, ly + 101)
+        art_box = (bx + 1, ly + 1, bx + lw - 1, ly + 103)
         if lead["art"] == "summit":
             art_summit(d, art_box)
         elif lead["art"] == "court":
             art_court(d, art_box)
         else:
             art_ipo(d, art_box)
-        d.rectangle([bx + 1, ly + 101, bx + lw - 1, ly + 117], fill=(16, 16, 16))
-        ban = banners[i]
-        banf = F(SANS_B, 12)
-        d.text((bx + (lw - tw(d, ban, banf)) / 2, ly + 103), ban, font=banf, fill=(255, 255, 255))
         tx = bx + 8
-        num_badge(d, tx, ly + 122, lead["n"], RED)
-        d.text((tx + 24, ly + 123), lead["tag"] + " — " + lead["src"].upper(),
+        num_badge(d, tx, ly + 108, lead["n"], RED)
+        d.text((tx + 24, ly + 109), lead["tag"] + " — " + lead["src"].upper(),
                font=F(COND_B, 11), fill=DARKRED)
-        hf = F(SERIF_B, 20)
+        status_chip(d, bx + lw - 8, ly + 108, chip_for(lead["n"]))
+        hf = F(SERIF_B, 19)
         hlines = wrap(d, lead["head"], hf, lw - 16, 2)
-        yy = draw_lines(d, tx, ly + 140, hlines, hf, INK, 21)
+        yy = draw_lines(d, tx, ly + 126, hlines, hf, INK, 21)
         bf2 = F(SANS_R, 11)
         blines = wrap(d, lead["body"], bf2, lw - 16, 3)
-        draw_lines(d, tx, yy + 1, blines, bf2, (40, 40, 40), 12)
+        draw_lines(d, tx, yy + 1, blines, bf2, (40, 40, 40), 13)
 
-    # small cards 4-13: 5 columns x 2 rows, taller art, bigger headlines
+    # small cards 4-13: 5 columns x 2 rows
     cy0 = ly + lh + 6
-    ch = 134
+    ch = 132
     cw5 = (CW - 4 * gap) / 5.0
     for idx, card in enumerate(CARDS):
         row, col = divmod(idx, 5)
         bx = X0 + col * (cw5 + gap)
         by = cy0 + row * (ch + gap)
         d.rectangle([bx, by, bx + cw5, by + ch], fill=PAPER, outline=INK, width=1)
-        art_small(d, card["art"], (bx + 1, by + 1, bx + cw5 - 1, by + 50))
+        art_small(d, card["art"], (bx + 1, by + 1, bx + cw5 - 1, by + 47))
         tx = bx + 6
-        num_badge(d, tx, by + 54, card["n"], NAVY, r=8)
-        d.text((tx + 20, by + 55), card["tag"], font=F(COND_B, 10), fill=DARKRED)
-        hf = F(SERIF_B, 14)
-        hlines = wrap(d, card["head"], hf, cw5 - 12, 2)
-        yy = draw_lines(d, tx, by + 71, hlines, hf, INK, 15)
+        num_badge(d, tx, by + 51, card["n"], NAVY, r=8)
+        d.text((tx + 20, by + 52), card["tag"], font=F(COND_B, 10), fill=DARKRED)
+        status_chip(d, bx + cw5 - 6, by + 51, chip_for(card["n"]))
+        hf = F(SERIF_B, 13)
+        max_head = 3 if card["n"] == 9 else 2
+        hlines = wrap(d, card["head"], hf, cw5 - 12, max_head)
+        yy = draw_lines(d, tx, by + 68, hlines, hf, INK, 14)
         bf2 = F(COND_R, 11)
         blines = wrap(d, card["body"] + " — " + card["src"], bf2, cw5 - 12, 2)
         draw_lines(d, tx, yy, blines, bf2, (40, 40, 40), 12)
@@ -656,6 +710,10 @@ def build_image():
     sy = dy + 68
     sf = fit_size(d, SOURCES, SANS_R, 10, CW, minimum=8)
     d.text((X0, sy), SOURCES, font=F(SANS_R, sf), fill=MUTED)
+    d.text((X0, sy + 12),
+           "Status chips — REPORTED: confirmed by named sources · CLAIM: one side's account, "
+           "not independently verified · FORECAST: still to happen (the landfall is due Friday).",
+           font=F(SANS_R, 9), fill=MUTED)
     return img
 
 
